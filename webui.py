@@ -1002,7 +1002,7 @@ with shared.gradio_root:
 
         # ctrls += ip_ctrls
         ctrls += [debugging_dino, dino_erode_or_dilate, debugging_enhance_masks_checkbox,
-                   enhance_checkbox, enhance_uov_method, enhance_uov_processing_order,
+                  enhance_input_image, enhance_checkbox, enhance_uov_method, enhance_uov_processing_order,
                   enhance_uov_prompt_type]
         ctrls += enhance_ctrls
 
