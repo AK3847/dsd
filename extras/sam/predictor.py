@@ -21,7 +21,7 @@ class SamPredictor:
         self,
         model: Sam,
         load_device=model_management.text_encoder_device(),
-        offload_device=model_management.text_encoder_offload_device()
+        offload_device=model_management.text_encoder_offload_device(),
     ) -> None:
         """
         Uses SAM to calculate the image embedding for an image, and then
@@ -37,7 +37,9 @@ class SamPredictor:
         # can't use model.half() here as slow_conv2d_cpu is not implemented for half
         model.to(self.offload_device)
 
-        self.patcher = ModelPatcher(model, load_device=self.load_device, offload_device=self.offload_device)
+        self.patcher = ModelPatcher(
+            model, load_device=self.load_device, offload_device=self.offload_device
+        )
 
         self.transform = ResizeLongestSide(model.image_encoder.img_size)
         self.reset_image()
@@ -66,7 +68,9 @@ class SamPredictor:
         # Transform the image to the form expected by the model
         input_image = self.transform.apply_image(image)
         input_image_torch = torch.as_tensor(input_image, device=self.load_device)
-        input_image_torch = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
+        input_image_torch = input_image_torch.permute(2, 0, 1).contiguous()[
+            None, :, :, :
+        ]
 
         self.set_torch_image(input_image_torch, image.shape[:2])
 
@@ -90,14 +94,17 @@ class SamPredictor:
         assert (
             len(transformed_image.shape) == 4
             and transformed_image.shape[1] == 3
-            and max(*transformed_image.shape[2:]) == self.patcher.model.image_encoder.img_size
+            and max(*transformed_image.shape[2:])
+            == self.patcher.model.image_encoder.img_size
         ), f"set_torch_image input must be BCHW with long side {self.patcher.model.image_encoder.img_size}."
         self.reset_image()
 
         self.original_size = original_image_size
         self.input_size = tuple(transformed_image.shape[-2:])
         model_management.load_model_gpu(self.patcher)
-        input_image = self.patcher.model.preprocess(transformed_image.to(self.load_device))
+        input_image = self.patcher.model.preprocess(
+            transformed_image.to(self.load_device)
+        )
         self.features = self.patcher.model.image_encoder(input_image)
         self.is_image_set = True
 
@@ -143,7 +150,9 @@ class SamPredictor:
             a subsequent iteration as mask input.
         """
         if not self.is_image_set:
-            raise RuntimeError("An image must be set with .set_image(...) before mask prediction.")
+            raise RuntimeError(
+                "An image must be set with .set_image(...) before mask prediction."
+            )
 
         # Transform input prompts
         coords_torch, labels_torch, box_torch, mask_input_torch = None, None, None, None
@@ -152,15 +161,21 @@ class SamPredictor:
                 point_labels is not None
             ), "point_labels must be supplied if point_coords is supplied."
             point_coords = self.transform.apply_coords(point_coords, self.original_size)
-            coords_torch = torch.as_tensor(point_coords, dtype=torch.float, device=self.load_device)
-            labels_torch = torch.as_tensor(point_labels, dtype=torch.int, device=self.load_device)
+            coords_torch = torch.as_tensor(
+                point_coords, dtype=torch.float, device=self.load_device
+            )
+            labels_torch = torch.as_tensor(
+                point_labels, dtype=torch.int, device=self.load_device
+            )
             coords_torch, labels_torch = coords_torch[None, :, :], labels_torch[None, :]
         if box is not None:
             box = self.transform.apply_boxes(box, self.original_size)
             box_torch = torch.as_tensor(box, dtype=torch.float, device=self.load_device)
             box_torch = box_torch[None, :]
         if mask_input is not None:
-            mask_input_torch = torch.as_tensor(mask_input, dtype=torch.float, device=self.load_device)
+            mask_input_torch = torch.as_tensor(
+                mask_input, dtype=torch.float, device=self.load_device
+            )
             mask_input_torch = mask_input_torch[None, :, :, :]
 
         masks, iou_predictions, low_res_masks = self.predict_torch(
@@ -223,10 +238,15 @@ class SamPredictor:
             a subsequent iteration as mask input.
         """
         if not self.is_image_set:
-            raise RuntimeError("An image must be set with .set_image(...) before mask prediction.")
+            raise RuntimeError(
+                "An image must be set with .set_image(...) before mask prediction."
+            )
 
         if point_coords is not None:
-            points = (point_coords.to(self.load_device), point_labels.to(self.load_device))
+            points = (
+                point_coords.to(self.load_device),
+                point_labels.to(self.load_device),
+            )
         else:
             points = None
 
@@ -254,7 +274,9 @@ class SamPredictor:
         )
 
         # Upscale the masks to the original image resolution
-        masks = self.patcher.model.postprocess_masks(low_res_masks, self.input_size, self.original_size)
+        masks = self.patcher.model.postprocess_masks(
+            low_res_masks, self.input_size, self.original_size
+        )
 
         if not return_logits:
             masks = masks > self.patcher.model.mask_threshold
@@ -271,7 +293,9 @@ class SamPredictor:
             raise RuntimeError(
                 "An image must be set with .set_image(...) to generate an embedding."
             )
-        assert self.features is not None, "Features must exist if an image has been set."
+        assert (
+            self.features is not None
+        ), "Features must exist if an image has been set."
         return self.features
 
     @property

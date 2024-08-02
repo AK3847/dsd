@@ -13,14 +13,14 @@ model = None
 def perform_upscale(img):
     global model
 
-    print(f'Upscaling image with shape {str(img.shape)} ...')
+    print(f"Upscaling image with shape {str(img.shape)} ...")
 
     if model is None:
         model_filename = downloading_upscale_model()
         sd = torch.load(model_filename)
         sdo = OrderedDict()
         for k, v in sd.items():
-            sdo[k.replace('residual_block_', 'RDB')] = v
+            sdo[k.replace("residual_block_", "RDB")] = v
         del sd
         model = ESRGAN(sdo)
         model.cpu()
