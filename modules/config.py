@@ -354,11 +354,11 @@ default_loras_max_weight = get_config_item_or_set_default(
 default_loras = get_config_item_or_set_default(
     key="default_loras",
     default_value=[
-        [True, "None", 1.0],
-        [True, "None", 1.0],
-        [True, "None", 1.0],
-        [True, "None", 1.0],
-        [True, "None", 1.0],
+        [False, "None", 1.0],
+        [False, "None", 1.0],
+        [False, "None", 1.0],
+        [False, "None", 1.0],
+        [False, "None", 1.0],
     ],
     validator=lambda x: isinstance(x, list)
     and all(
@@ -416,7 +416,7 @@ default_vae = get_config_item_or_set_default(
 )
 default_styles = get_config_item_or_set_default(
     key="default_styles",
-    default_value=["Fooocus V2", "Fooocus Enhance", "Fooocus Sharp"],
+    default_value=[],
     validator=lambda x: isinstance(x, list)
     and all(y in modules.sdxl_styles.legal_style_names for y in x),
     expected_type=list,
