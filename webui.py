@@ -182,7 +182,7 @@ def inpaint_mode_change(mode, inpaint_engine_version):
 
 reload_javascript()
 
-title = f"Fooocus {fooocus_version.version}"
+title = f"SmileSculpt ^_^"
 
 if isinstance(args_manager.args.preset, str):
     title += " " + args_manager.args.preset
@@ -331,7 +331,7 @@ with shared.gradio_root:
                     value=modules.config.default_advanced_checkbox,
                     container=False,
                     elem_classes="min_check",
-                    visible=False,
+                    visible=True,
                 )
             with gr.Row(
                 visible=modules.config.default_image_prompt_checkbox
